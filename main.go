@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,22 +18,15 @@ type conf struct {
 	ScrapePath   string `json:"scrapePath"`
 	ItemPath     string `json:"itemPath"`
 	ItemSelector string `json:"itemSelector"`
+	WebhookURL   string `json:"webhookUrl"`
 }
 
-type result struct {
-	id           string
-	title        string
-	state        string
-	timeLeft     string
-	bids         int64
-	currentPrice int64
-}
+var c conf
 
 func main() {
-	var c conf
 	c.getConf()
 
-	results := make([]result, 50)
+	results := make([]string, 50)
 	skipFirst := true
 	s := colly.NewCollector()
 
@@ -57,16 +51,33 @@ func main() {
 			bids:         numBids,
 			currentPrice: price,
 		}
-		log.Printf("Result: %s", r)
 
-		results = append(results, r)
+		results = append(results, r.toString())
 	})
 
 	s.OnRequest(func(r *colly.Request) {
 		log.Printf("Visiting: %s", r.URL)
 	})
 
+	s.OnScraped(func(r *colly.Response) {
+		postToSlack(results)
+	})
+
 	s.Visit(c.BaseURL + c.ScrapePath)
+}
+
+func postToSlack(r []string) {
+	jsonStr := fmt.Sprintf(`{"text":"%s"}`, r)
+	req, err := http.NewRequest("POST", c.WebhookURL, strings.NewReader(jsonStr))
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+	log.Println("response Status:", resp.Status)
+	log.Println("response Headers:", resp.Header)
 }
 
 func (c *conf) getConf() *conf {
