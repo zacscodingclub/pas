@@ -26,7 +26,8 @@ var c conf
 func main() {
 	c.getConf()
 
-	results := make([]string, 50)
+	results := make([]result, 0, 50)
+
 	skipFirst := true
 	s := colly.NewCollector()
 
@@ -52,7 +53,7 @@ func main() {
 			currentPrice: price,
 		}
 
-		results = append(results, r.toString())
+		results = append(results, r)
 	})
 
 	s.OnRequest(func(r *colly.Request) {
@@ -60,15 +61,37 @@ func main() {
 	})
 
 	s.OnScraped(func(r *colly.Response) {
-		postToSlack(results)
+		log.Println("Finished Scraping")
+		filteredResults := finishingToday(results)
+		msg := buildMessage(filteredResults)
+		postToSlack(msg)
 	})
 
 	s.Visit(c.BaseURL + c.ScrapePath)
 }
 
-func postToSlack(r []string) {
-	jsonStr := fmt.Sprintf(`{"text":"%s"}`, r)
-	req, err := http.NewRequest("POST", c.WebhookURL, strings.NewReader(jsonStr))
+func finishingToday(rs []result) []result {
+	filtered := make([]result, 0)
+	for _, r := range rs {
+		if !strings.Contains(r.timeLeft, "day") {
+			filtered = append(filtered, r)
+		}
+	}
+	return filtered
+}
+
+func buildMessage(rs []result) string {
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf(`{"text":"Found %d listings","attachments": [{"text":"`, len(rs)))
+	for _, r := range rs {
+		sb.WriteString(r.toSlack())
+	}
+	sb.WriteString(fmt.Sprintf(`"}]}`, len(rs)))
+	return sb.String()
+}
+
+func postToSlack(r string) {
+	req, err := http.NewRequest("POST", c.WebhookURL, strings.NewReader(r))
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
