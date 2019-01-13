@@ -5,6 +5,7 @@ require (
 	github.com/antchfx/htmlquery v0.0.0-20181228060131-db5c1236cbb4 // indirect
 	github.com/antchfx/xmlquery v0.0.0-20181223105952-355641961c92 // indirect
 	github.com/antchfx/xpath v0.0.0-20181208024549-4bbdf6db12aa // indirect
+	github.com/aws/aws-lambda-go v1.8.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gocolly/colly v1.1.0
 	github.com/kennygrant/sanitize v1.2.4 // indirect

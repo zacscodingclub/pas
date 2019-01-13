@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -28,9 +29,14 @@ func (r *result) toString() string {
 // price, title, time left (bids)
 func (r *result) toSlack() string {
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("$%d,", r.currentPrice))
-	sb.WriteString(fmt.Sprintf(" <%s%s%s|%s>,", c.BaseURL, c.ItemPath, r.id, r.title))
-	sb.WriteString(fmt.Sprintf(" %s", r.timeLeft))
-	sb.WriteString(fmt.Sprintf(" (%d bids)\n", r.bids))
+	sb.WriteString(replaceDoubleQuote(fmt.Sprintf("$%d,", r.currentPrice)))
+	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" <%s%s%s|%s>,", c.BaseURL, c.ItemPath, r.id, r.title)))
+	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" %s", r.timeLeft)))
+	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" (%d bids)\n", r.bids)))
 	return sb.String()
+}
+
+func replaceDoubleQuote(s string) string {
+	re := regexp.MustCompile("\"")
+	return re.ReplaceAllString(s, "in. ")
 }

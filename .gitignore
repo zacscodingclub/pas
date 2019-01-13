@@ -2,3 +2,5 @@ notes.md
 .env.json
 pas
 go.sum
+deployment.zip
+Makefile
