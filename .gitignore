@@ -4,3 +4,5 @@ pas
 go.sum
 deployment.zip
 Makefile
+*.log
+*.sh
