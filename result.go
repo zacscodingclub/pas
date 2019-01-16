@@ -29,7 +29,7 @@ func (r *result) toString() string {
 // price, title, time left (bids)
 func (r *result) toSlack() string {
 	var sb strings.Builder
-	sb.WriteString(replaceDoubleQuote(fmt.Sprintf("$%d,", r.currentPrice)))
+	sb.WriteString(replaceDoubleQuote(fmt.Sprintf("$%d (%s)", r.currentPrice, r.state)))
 	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" <%s%s%s|%s>,", c.BaseURL, c.ItemPath, r.id, r.title)))
 	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" %s", r.timeLeft)))
 	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" (%d bids)\n", r.bids)))

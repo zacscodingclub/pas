@@ -35,37 +35,22 @@ func run() {
 
 	results := make([]result, 0, 50)
 
-	skipFirst := true
 	s := colly.NewCollector()
-
-	s.OnHTML(c.ItemSelector, func(e *colly.HTMLElement) {
-		if skipFirst {
-			skipFirst = false
-			return
-		}
-
-		numBids, err := strconv.ParseInt(e.ChildText("td:nth-child(6)"), 10, 64)
-		splitPrice := strings.Split(e.ChildText("td:nth-child(7)"), ".")
-		reg, err := regexp.Compile("[^a-zA-Z0-9]+")
-		price, err := strconv.ParseInt(reg.ReplaceAllString(splitPrice[0], ""), 10, 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		r := result{
-			id:           e.ChildText("td:nth-child(1)"),
-			title:        e.ChildText("td:nth-child(2)"),
-			state:        e.ChildText("td:nth-child(4)"),
-			timeLeft:     e.ChildText("td:nth-child(5)"),
-			bids:         numBids,
-			currentPrice: price,
-		}
-
-		results = append(results, r)
-	})
 
 	s.OnRequest(func(r *colly.Request) {
 		log.Printf("Visiting: %s", r.URL)
+	})
+
+	skipHeader := true
+	s.OnHTML(c.ItemSelector, func(e *colly.HTMLElement) {
+		if skipHeader {
+			skipHeader = false
+			return
+		}
+
+		r := buildResultFromElement(e)
+
+		results = append(results, r)
 	})
 
 	s.OnScraped(func(r *colly.Response) {
@@ -86,6 +71,25 @@ func finishingToday(rs []result) []result {
 		}
 	}
 	return filtered
+}
+
+func buildResultFromElement(e *colly.HTMLElement) result {
+	numBids, err := strconv.ParseInt(e.ChildText("td:nth-child(6)"), 10, 64)
+	splitPrice := strings.Split(e.ChildText("td:nth-child(7)"), ".")
+	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+	price, err := strconv.ParseInt(reg.ReplaceAllString(splitPrice[0], ""), 10, 64)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return result{
+		id:           e.ChildText("td:nth-child(1)"),
+		title:        e.ChildText("td:nth-child(2)"),
+		state:        e.ChildText("td:nth-child(4)"),
+		timeLeft:     e.ChildText("td:nth-child(5)"),
+		bids:         numBids,
+		currentPrice: price,
+	}
 }
 
 func buildMessage(rs []result) string {
