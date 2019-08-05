@@ -59,7 +59,6 @@ func run() {
 		msg := buildMessage(filteredResults)
 		postToSlack(msg)
 	})
-
 	s.Visit(c.BaseURL + c.ScrapePath)
 }
 
@@ -74,9 +73,9 @@ func finishingToday(rs []result) []result {
 }
 
 func buildResultFromElement(e *colly.HTMLElement) result {
-	numBids, err := strconv.ParseInt(e.ChildText("td:nth-child(6)"), 10, 64)
-	splitPrice := strings.Split(e.ChildText("td:nth-child(7)"), ".")
+	splitPrice := strings.Split(e.ChildText("td:nth-child(6)"), ".")
 	reg, err := regexp.Compile("[^a-zA-Z0-9]+")
+
 	price, err := strconv.ParseInt(reg.ReplaceAllString(splitPrice[0], ""), 10, 64)
 	if err != nil {
 		log.Fatal(err)
@@ -87,7 +86,6 @@ func buildResultFromElement(e *colly.HTMLElement) result {
 		title:        e.ChildText("td:nth-child(2)"),
 		state:        e.ChildText("td:nth-child(4)"),
 		timeLeft:     e.ChildText("td:nth-child(5)"),
-		bids:         numBids,
 		currentPrice: price,
 	}
 }
@@ -126,7 +124,6 @@ func (c *conf) getConf() *conf {
 		if err != nil {
 			log.Printf("env.json.Get err   #%v ", err)
 		}
-
 		err = json.Unmarshal(jsonFile, c)
 		if err != nil {
 			log.Fatalf("Unmarshal: %v", err)

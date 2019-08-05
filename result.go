@@ -11,7 +11,6 @@ type result struct {
 	title        string
 	state        string
 	timeLeft     string
-	bids         int64
 	currentPrice int64
 }
 
@@ -21,18 +20,16 @@ func (r *result) toString() string {
 	sb.WriteString(fmt.Sprintf(" title: %s,", r.title))
 	sb.WriteString(fmt.Sprintf(" state: %s,", r.state))
 	sb.WriteString(fmt.Sprintf(" timeLeft: %s,", r.timeLeft))
-	sb.WriteString(fmt.Sprintf(" bids: %d,", r.bids))
 	sb.WriteString(fmt.Sprintf(" currentPrice: %d }", r.currentPrice))
 	return sb.String()
 }
 
-// price, title, time left (bids)
+// price, title, time left
 func (r *result) toSlack() string {
 	var sb strings.Builder
 	sb.WriteString(replaceDoubleQuote(fmt.Sprintf("$%d (%s)", r.currentPrice, r.state)))
-	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" <%s%s%s|%s>,", c.BaseURL, c.ItemPath, r.id, r.title)))
-	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" %s", r.timeLeft)))
-	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" (%d bids)\n", r.bids)))
+	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" <%s%s%s|%s>", c.BaseURL, c.ItemPath, r.id, r.title)))
+	sb.WriteString(replaceDoubleQuote(fmt.Sprintf(" %s\n", r.timeLeft)))
 	return sb.String()
 }
 
